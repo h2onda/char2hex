@@ -4,11 +4,17 @@
 #
 # Convert strings to hex expression.
 #
+# Author: HONDA Hirofumi <h2onda@gmail.com>
+#
 
 function to_hex()
 {
-	echo -n $* |hexdump -e '/1 "0x%02x, "'
-	echo 0x00
+	iconv_result=$(echo -n $@ |iconv $iconv_options)
+	retval=$?
+	if [ ${retval} -eq 0 ]; then
+		echo -n $iconv_result|hexdump -e '/1 "0x%02x, "'
+		echo 0x00
+	fi
 }
 
 function to_ucs_charmaps()
@@ -30,21 +36,22 @@ Usage: $(basename $0) [OPTIONS] [STRINGS]
   Convert strings to hex expression.
 
   -c : convert to hex expression for char[] (default)
+  -t : select target encording when use -c option
   -u : convert to UCS expression for /usr/share/i18n/charmaps/*
   -e : convert to entity reference expression for html
 
 	EOF
 }
 
-while getopts "cue" flag "$@"; do
+while getopts "cuet:" flag "$@"; do
 	case $flag in
 		c) action=to_hex ;;
 		u) action=to_ucs_charmaps ;;
 		e) action=to_entity_reference ;;
+		t) iconv_options="-t $OPTARG" ;;
 		?|:) usage; exit ;;
 	esac
 done
 shift $(($OPTIND - 1))
 
 ${action:=to_hex} $@
-
