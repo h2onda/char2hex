@@ -16,6 +16,12 @@ function to_ucs_charmaps()
 	echo -n $*|iconv -t ucs-4le|hexdump -e '/4 "<U%04X>\n"'
 }
 
+function to_entity_reference()
+{
+	echo -n $*|iconv -t ucs-4le|hexdump -e '/4 "&#x%04x;"'
+	echo
+}
+
 function usage()
 {
 	cat <<-EOF
@@ -25,14 +31,16 @@ Usage: $(basename $0) [OPTIONS] [STRINGS]
 
   -c : convert to hex expression for char[] (default)
   -u : convert to UCS expression for /usr/share/i18n/charmaps/*
+  -e : convert to entity reference expression for html
 
 	EOF
 }
 
-while getopts "cu" flag "$@"; do
+while getopts "cue" flag "$@"; do
 	case $flag in
-		u) action=to_ucs_charmaps ;;
 		c) action=to_hex ;;
+		u) action=to_ucs_charmaps ;;
+		e) action=to_entity_reference ;;
 		?|:) usage; exit ;;
 	esac
 done
